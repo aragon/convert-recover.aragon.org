@@ -27,7 +27,7 @@ const Header = React.memo(function Header({ compactMode }) {
           flex-grow: 1;
         `}
       >
-        Aragon Recovery Tool
+        Bonding Curve Recovery Tool
       </div>
       <div
         css={`
