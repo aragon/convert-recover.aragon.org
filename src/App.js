@@ -1,26 +1,69 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { Box, Split, GU, textStyle } from '@aragon/ui'
+import 'styled-components/macro'
+import Header from './components/Header/Header'
+import OrdersTable from './components/OrdersTable'
+import { BUY_ORDER } from './lib/query-types'
+import { useTokenBalance } from './lib/web3-contracts'
+import { formatUnits } from './lib//web3-utils'
+import { useWallet } from 'use-wallet'
 
-function App() {
+function Container({ children }) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div
+      css={`
+        margin-top: ${12 * GU}px;
+      `}
+    >
+      {children}
     </div>
-  );
+  )
 }
 
-export default App;
+function App() {
+  const { connected } = useWallet()
+  const antBalance = useTokenBalance('ANT')
+  const anjBalance = useTokenBalance('ANJ')
+
+  return (
+    <>
+      <Header />
+      <Container>
+        <Split
+          primary={<OrdersTable type={BUY_ORDER} />}
+          secondary={
+            <Box heading="Current Balances">
+              <div
+                css={`
+                  ${textStyle('body2')}
+                  margin-bottom: ${2 * GU}px;
+                `}
+              >
+                ANT:{' '}
+                {connected
+                  ? formatUnits(antBalance.toString(), {
+                      truncateToDecimalPlace: 4,
+                    })
+                  : 0}
+              </div>
+              <div
+                css={`
+                  ${textStyle('body2')}
+                `}
+              >
+                ANJ:{' '}
+                {connected
+                  ? formatUnits(anjBalance.toString(), {
+                      truncateToDecimalPlace: 4,
+                    })
+                  : 0}
+              </div>
+            </Box>
+          }
+        />
+      </Container>
+    </>
+  )
+}
+
+export default App
