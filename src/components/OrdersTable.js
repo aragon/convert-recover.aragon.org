@@ -42,7 +42,7 @@ export default function OrdersTable({ type }) {
   const toast = useToast()
   const claimOrder = useClaimOrder()
 
-  const { data, loading, error, refetch } = useQuery(
+  const { data, loading, error } = useQuery(
     type === BUY_ORDER ? GET_BUY_ORDERS_QUERY : GET_SELL_ORDERS_QUERY,
     {
       variables: {
@@ -62,7 +62,6 @@ export default function OrdersTable({ type }) {
         const tx = await claimOrder(type, batchId, collateral)
         toast('Transaction sent succesfully!')
         await tx.wait()
-        refetch()
         toast('Transaction mined succesfully!')
       } catch (err) {
         // do something with err, hopefully sentry
@@ -70,7 +69,7 @@ export default function OrdersTable({ type }) {
         toast('Something went wrong or you declined the transaction.')
       }
     },
-    [claimOrder, ethereum, toast, type, refetch],
+    [claimOrder, ethereum, toast, type],
   )
 
   if (loading) {
