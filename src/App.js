@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import PropTypes from 'prop-types'
 import {
   Box,
   Button,
@@ -16,18 +17,6 @@ import { BUY_ORDER, SELL_ORDER } from './lib/query-types'
 import { useTokenBalance } from './lib/web3-contracts'
 import { formatUnits } from './lib//web3-utils'
 import { useWallet } from 'use-wallet'
-
-function Container({ children }) {
-  return (
-    <div
-      css={`
-        margin-top: ${12 * GU}px;
-      `}
-    >
-      {children}
-    </div>
-  )
-}
 
 function App() {
   const [type, setType] = useState(BUY_ORDER)
@@ -94,6 +83,25 @@ function App() {
       </Container>
     </>
   )
+}
+
+function Container({ children }) {
+  return (
+    <div
+      css={`
+        margin-top: ${12 * GU}px;
+      `}
+    >
+      {children}
+    </div>
+  )
+}
+
+Container.propTypes = {
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node,
+  ]).isRequired,
 }
 
 export default App
