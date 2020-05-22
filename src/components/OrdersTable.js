@@ -64,8 +64,6 @@ export default function OrdersTable({ type }) {
         await tx.wait()
         toast('Transaction mined succesfully!')
       } catch (err) {
-        // do something with err, hopefully sentry
-        console.log(err)
         toast('Something went wrong or you declined the transaction.')
       }
     },

@@ -7,9 +7,10 @@ import { UseWalletProvider } from 'use-wallet'
 import { ApolloProvider } from '@apollo/react-hooks'
 import { Main } from '@aragon/ui'
 import App from './App'
+import env from './environment'
 
-const SUBGRAPH_HTTP_URL =
-  'https://api.thegraph.com/subgraphs/name/evalir/marketsubgraph'
+const SUBGRAPH_HTTP_URL = env('SUBGRAPH_HTTP_ENDPOINT')
+const CHAIN_ID = Number(env('CHAIN_ID'))
 
 const cache = new InMemoryCache()
 const link = new HttpLink({
@@ -24,8 +25,11 @@ const client = new ApolloClient({
 ReactDOM.render(
   <ApolloProvider client={client}>
     <UseWalletProvider
-      chainId={1}
-      // TODO: Configure portis and fortmatic connectors.
+      chainId={CHAIN_ID}
+      connectors={{
+        fortmatic: { apiKey: env('FORTMATIC_API_KEY') },
+        portis: { dAppId: env('PORTIS_DAPP_ID') },
+      }}
     >
       <React.StrictMode>
         <Main assets="public/aragon-ui/">
