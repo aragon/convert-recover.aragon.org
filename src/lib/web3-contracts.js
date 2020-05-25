@@ -7,9 +7,11 @@ import { bigNum } from './web3-utils'
 
 export function useContract(address, abi, signer = true) {
   const { ethereum } = useWallet()
+
   if (!ethereum) {
     return
   }
+
   const ethersProvider = new providers.Web3Provider(ethereum)
 
   if (!address || !ethersProvider) {

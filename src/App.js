@@ -1,13 +1,12 @@
 import React, { useState, useCallback } from 'react'
-import PropTypes from 'prop-types'
 import {
   Box,
   Button,
-  Header,
-  Split,
   GU,
-  textStyle,
+  Header,
   IconSwap,
+  Split,
+  textStyle,
   useViewport,
 } from '@aragon/ui'
 import 'styled-components/macro'
@@ -20,8 +19,10 @@ import { useWallet } from 'use-wallet'
 
 function App() {
   const [type, setType] = useState(BUY_ORDER)
+
   const { connected } = useWallet()
   const { below } = useViewport()
+
   const antBalance = useTokenBalance('ANT')
   const anjBalance = useTokenBalance('ANJ')
 
@@ -32,19 +33,23 @@ function App() {
   return (
     <>
       <TopHeader />
-      <Container>
+      <div
+        css={`
+          margin-top: ${12 * GU}px;
+        `}
+      >
         <Header
           primary={`Pending ${
             type === BUY_ORDER ? 'ANT to ANJ' : 'ANJ to ANT'
           } orders`}
           secondary={
             <Button
-              label="Switch"
-              mode="strong"
-              icon={<IconSwap />}
-              onClick={handleSwitch}
               disabled={!connected}
               display={below('medium') ? 'icon' : 'all'}
+              icon={<IconSwap />}
+              mode="strong"
+              label="Switch"
+              onClick={handleSwitch}
             />
           }
         />
@@ -80,28 +85,9 @@ function App() {
             </Box>
           }
         />
-      </Container>
+      </div>
     </>
   )
-}
-
-function Container({ children }) {
-  return (
-    <div
-      css={`
-        margin-top: ${12 * GU}px;
-      `}
-    >
-      {children}
-    </div>
-  )
-}
-
-Container.propTypes = {
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node,
-  ]).isRequired,
 }
 
 export default App

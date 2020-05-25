@@ -13,6 +13,8 @@ const ORDER_FIELDS = ['Transaction Hash', 'Batch ID', 'Value']
 
 const POLL_INTERVAL_MS = 30000 // 30 secs long polling
 
+const ETHERSCAN_TX_PREFIX = 'https://etherscan.io/tx/'
+
 const GET_BUY_ORDERS_QUERY = gql`
   query getBuyOrders($address: String) {
     buyOrders(where: { buyer: $address, claimed: false }) {
@@ -54,7 +56,6 @@ export default function OrdersTable({ type }) {
 
   const handleClaim = useCallback(
     async (batchId, collateral) => {
-      // do stuff here.
       if (!ethereum) {
         return
       }
@@ -78,7 +79,8 @@ export default function OrdersTable({ type }) {
     return (
       <Info mode="error">
         {' '}
-        An error has ocurred. Please reload the window.{' '}
+        An error has ocurred. Please reload the window, or contact the
+        developers for assistance if this error persists.
       </Info>
     )
   }
@@ -94,17 +96,17 @@ export default function OrdersTable({ type }) {
     <DataView
       fields={ORDER_FIELDS}
       entries={orders}
-      renderEntry={data => {
+      renderEntry={({ batchId, transactionHash, value }) => {
         return [
           <Link
-            href={`https://etherscan.io/tx/${data.transactionHash}`}
             external
-            key={data.transactionHash}
+            href={`${ETHERSCAN_TX_PREFIX}${transactionHash}`}
+            key={transactionHash}
           >
-            {shortenAddress(data.transactionHash)}
+            {shortenAddress(transactionHash)}
           </Link>,
-          <p key={data.batchId}>{data.batchId}</p>,
-          <p key={data.batchId}>{`${formatUnits(data.value, {
+          <p key={batchId}>{batchId}</p>,
+          <p key={batchId}>{`${formatUnits(value, {
             truncateToDecimalPlace: 4,
           })} ${type === BUY_ORDER ? 'ANT' : 'ANJ'}`}</p>,
         ]
@@ -112,9 +114,9 @@ export default function OrdersTable({ type }) {
       renderEntryActions={({ batchId, collateral }) => {
         return (
           <Button
-            onClick={() => handleClaim(batchId, collateral)}
-            label="Claim order"
             mode="strong"
+            label="Claim order"
+            onClick={() => handleClaim(batchId, collateral)}
           >
             Claim order
           </Button>

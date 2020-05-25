@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Transition, animated } from 'react-spring/renderprops'
 import { useWallet } from 'use-wallet'
 import { Button, GU, IconConnect, springs, useViewport } from '@aragon/ui'
 import 'styled-components/macro'
-import { Transition, animated } from 'react-spring/renderprops'
 import { shortenAddress, getUseWalletProviders } from '../../lib/web3-utils'
 import AccountButton from './AccountButton'
 import HeaderPopover from '../Header/HeaderPopover'
@@ -11,13 +11,20 @@ import ScreenConnecting from './ScreenConnecting'
 import ScreenError from './ScreenError'
 import ScreenProviders from './ScreenProviders'
 
+const NUM_OF_PROVIDERS = getUseWalletProviders().length
+
 const SCREENS = [
   {
     id: 'providers',
     title: 'Ethereum providers',
     height:
       4 * GU + // header
-      (12 + 1.5) * GU * (getUseWalletProviders().length / 2) + // buttons
+      (12 + 1.5) *
+        GU *
+        ((NUM_OF_PROVIDERS % 2 !== 0
+          ? NUM_OF_PROVIDERS + 1
+          : NUM_OF_PROVIDERS) /
+          2) + // buttons
       7 * GU, // footer
   },
   {

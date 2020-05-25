@@ -2,9 +2,6 @@
 const CHAIN_ID_DEFAULT = 1
 
 const ENV_VARS = {
-  BUILD() {
-    return process.env.REACT_APP_BUILD || 'undefined'
-  },
   CHAIN_ID() {
     const chainId = parseInt(process.env.REACT_APP_CHAIN_ID)
     return isNaN(chainId) ? CHAIN_ID_DEFAULT : chainId
@@ -14,9 +11,6 @@ const ENV_VARS = {
   },
   FORTMATIC_API_KEY() {
     return process.env.REACT_APP_FORTMATIC_API_KEY || ''
-  },
-  IPFS_GATEWAY() {
-    return process.env.REACT_APP_IPFS_GATEWAY || ''
   },
   PORTIS_DAPP_ID() {
     return process.env.REACT_APP_PORTIS_DAPP_ID || ''
