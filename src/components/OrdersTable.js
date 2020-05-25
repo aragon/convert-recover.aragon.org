@@ -1,22 +1,21 @@
 import React, { useCallback } from 'react'
-import PropTypes from 'prop-types'
 import 'styled-components/macro'
 import { useWallet } from 'use-wallet'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { Button, DataView, Link, Info, useToast } from '@aragon/ui'
-import { BUY_ORDER } from '../lib/query-types.js'
+import { BUY_ORDER, SELL_ORDER } from '../lib/query-types.js'
 import { useClaimOrder } from '../lib/web3-contracts.js'
 import { formatUnits, shortenAddress } from '../lib/web3-utils.js'
 
-const ORDER_FIELDS = ['Transaction Hash', 'Batch ID', 'Value']
+const ORDER_FIELDS = ['Transaction Hash', 'Batch ID', 'Trade Type', 'Value']
 
 const POLL_INTERVAL_MS = 30000 // 30 secs long polling
 
 const ETHERSCAN_TX_PREFIX = 'https://etherscan.io/tx/'
 
-const GET_BUY_ORDERS_QUERY = gql`
-  query getBuyOrders($address: String) {
+const GET_ALL_ORDERS_QUERY = gql`
+  query getAllOrders($address: String) {
     buyOrders(where: { buyer: $address, claimed: false }) {
       id
       batchId
@@ -24,11 +23,6 @@ const GET_BUY_ORDERS_QUERY = gql`
       transactionHash
       value
     }
-  }
-`
-
-const GET_SELL_ORDERS_QUERY = gql`
-  query getSellOrders($address: String) {
     sellOrders(where: { seller: $address, claimed: false }) {
       id
       batchId
@@ -39,28 +33,25 @@ const GET_SELL_ORDERS_QUERY = gql`
   }
 `
 
-export default function OrdersTable({ type }) {
+export default function OrdersTable() {
   const { account, ethereum } = useWallet()
   const toast = useToast()
   const claimOrder = useClaimOrder()
 
-  const { data, loading, error } = useQuery(
-    type === BUY_ORDER ? GET_BUY_ORDERS_QUERY : GET_SELL_ORDERS_QUERY,
-    {
-      variables: {
-        address: !account ? '0x' : account,
-      },
-      pollInterval: POLL_INTERVAL_MS,
+  const { data, loading, error } = useQuery(GET_ALL_ORDERS_QUERY, {
+    variables: {
+      address: !account ? '0x' : account,
     },
-  )
+    pollInterval: POLL_INTERVAL_MS,
+  })
 
   const handleClaim = useCallback(
-    async (batchId, collateral) => {
+    async (orderType, batchId, collateral) => {
       if (!ethereum) {
         return
       }
       try {
-        const tx = await claimOrder(type, batchId, collateral)
+        const tx = await claimOrder(orderType, batchId, collateral)
         toast('Transaction sent succesfully!')
         await tx.wait()
         toast('Transaction mined succesfully!')
@@ -68,7 +59,7 @@ export default function OrdersTable({ type }) {
         toast('Something went wrong or you declined the transaction.')
       }
     },
-    [claimOrder, ethereum, toast, type],
+    [claimOrder, ethereum, toast],
   )
 
   if (loading) {
@@ -85,18 +76,22 @@ export default function OrdersTable({ type }) {
     )
   }
 
-  let orders
-  if (type === BUY_ORDER) {
-    orders = data.buyOrders
-  } else {
-    orders = data.sellOrders
-  }
+  const { buyOrders, sellOrders } = data
+  const preparedBuyOrders = buyOrders.map(buyOrder => ({
+    ...buyOrder,
+    orderType: BUY_ORDER,
+  }))
+  const preparedSellOrders = sellOrders.map(sellOrder => ({
+    ...sellOrder,
+    orderType: SELL_ORDER,
+  }))
+  const orders = [...preparedBuyOrders, ...preparedSellOrders]
 
   return (
     <DataView
       fields={ORDER_FIELDS}
       entries={orders}
-      renderEntry={({ batchId, transactionHash, value }) => {
+      renderEntry={({ batchId, orderType, transactionHash, value }) => {
         return [
           <Link
             external
@@ -106,17 +101,18 @@ export default function OrdersTable({ type }) {
             {shortenAddress(transactionHash)}
           </Link>,
           <p key={batchId}>{batchId}</p>,
+          orderType === BUY_ORDER ? <p>ANT → ANJ</p> : <p>ANJ → ANT</p>,
           <p key={batchId}>{`${formatUnits(value, {
             truncateToDecimalPlace: 4,
-          })} ${type === BUY_ORDER ? 'ANT' : 'ANJ'}`}</p>,
+          })} ${orderType === BUY_ORDER ? 'ANT' : 'ANJ'}`}</p>,
         ]
       }}
-      renderEntryActions={({ batchId, collateral }) => {
+      renderEntryActions={({ batchId, collateral, orderType }) => {
         return (
           <Button
             mode="strong"
             label="Claim order"
-            onClick={() => handleClaim(batchId, collateral)}
+            onClick={() => handleClaim(orderType, batchId, collateral)}
           >
             Claim order
           </Button>
@@ -124,8 +120,4 @@ export default function OrdersTable({ type }) {
       }}
     />
   )
-}
-
-OrdersTable.propTypes = {
-  type: PropTypes.symbol,
 }
